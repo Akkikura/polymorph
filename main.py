@@ -32,9 +32,13 @@ class Student:
         return f'Имя: {self.name}\nФамилия: {self.surname}\nСредняя оценка за домашние задания: {self.av_rating()}\nКурсы в процессе изучения: {", ".join(self.courses_in_progress)}\nЗавершенные курсы: {", ".join(self.finished_courses)}'
     def __it__(self,other):
         if isinstance(other,Student):
-            print('Студентов и преподавателей не сравнивают')
-            return        
-        return self.av_rating() < other.av_rating()
+            if (self.av_rating() < other.av_rating()) == True:
+                return (other.name + ' учится лучше, чем ' + self.name)
+            else:
+                return(self.name + ' учится лучше, чем ' + other.name)
+        else:
+            return('Студентов и преподавателей не сравнивают!')       
+        
 class Mentor:
     def __init__(self, name, surname):
         self.name = name
@@ -62,6 +66,14 @@ class Lecturer(Mentor):
                 student.attendance[course] = [availability]
         else:
             return ('Ошибка')
+    def __it__(self,other):
+        if isinstance(other,Lecturer):
+           if (self.average_rating() < other.average_rating()) == True:
+                return ('У '+other.name + ' средняя оценка лекции выше, чем у ' + self.name)
+           else:
+                return('У ' + self.name + ' средняя оценка лекции выше, чем у ' + other.name )
+        else:
+            return(self.name, ' учится лучше, чем ', other.name)
     
 class Reviewer(Mentor):
     def __str__(self):
@@ -74,11 +86,6 @@ class Reviewer(Mentor):
                 student.grades[course] = [grade]
         else:
             return 'Ошибка'
-    def __it__(self,other):
-        if isinstance(other,Lecturer):
-            print('Студентов и преподавателей не сравнивают')
-            return        
-        return self.av_rating() < other.av_rating()
 #Функция добавления выговора студенту за невыполнение дз
     def rebuke(self, student, course, rebukes):
         if isinstance(student, Student) and course in student.courses_in_progress:
@@ -94,12 +101,6 @@ some_student2 = Student('Сергей', 'Сергеевич', 'муж')
 some_student1.courses_in_progress += ['Python','Git']
 some_student2.courses_in_progress += ['Python']
 
-
-
-
-
-
-
 #Лекторы
 some_lecturer1 = Lecturer('Анатолий', 'Анатольевич')
 some_lecturer2 = Lecturer('Александр', 'Александрович')
@@ -112,7 +113,7 @@ some_reviewer2 = Reviewer('Олег', "Олегович")
 
 #Выставляем оценки за дз
 some_reviewer1.rate_hw(some_student1, 'Python',  10)
-some_reviewer1.rate_hw(some_student1, 'Python',  9)
+some_reviewer1.rate_hw(some_student1, 'Python',  8)
 some_reviewer1.rate_hw(some_student1, 'Python',  7)
 some_reviewer1.rate_hw(some_student1, 'Python',  8)
 some_reviewer2.rate_hw(some_student2, 'Python',  7)
@@ -138,7 +139,12 @@ some_lecturer2.attendance(some_student2, 'Python', 'was')
 some_lecturer1.attendance(some_student1, 'Python', 'was')
 some_lecturer2.attendance(some_student2, 'Python', 'was')
 
-#Выставляем выговора студентам
+#Выставляем выговоры студентам
 some_reviewer2.rebuke(some_student1, 'Python', 'rebuke')
 some_reviewer1.rebuke(some_student2, 'Python', 'rebuke')
 
+#Сравниваем студентов
+print(some_student2.__it__(some_student1))
+
+#Сравниваем лекторов
+print(some_lecturer1.__it__(some_lecturer2))
