@@ -1,4 +1,3 @@
-from operator import le
 class Student:
     def __init__(self, name, surname, gender):
         self.name = name
@@ -30,15 +29,20 @@ class Student:
         return average_rating
     def __str__(self):
         return f'Имя: {self.name}\nФамилия: {self.surname}\nСредняя оценка за домашние задания: {self.av_rating()}\nКурсы в процессе изучения: {", ".join(self.courses_in_progress)}\nЗавершенные курсы: {", ".join(self.finished_courses)}'
-    def __it__(self,other):
-        if isinstance(other,Student):
-            if (self.av_rating() < other.av_rating()) == True:
-                return (other.name + ' учится лучше, чем ' + self.name)
-            else:
-                return(self.name + ' учится лучше, чем ' + other.name)
-        else:
-            return('Студентов и преподавателей не сравнивают!')       
-        
+    def __lt__(self, other):
+        if not isinstance(other, Student):
+            print("Студентов и преподавателей не сравнивают.")
+            return
+        return self.av_rating() < other.av_rating()  
+    def avg_rate_course(self, course):
+        sum_crs = 0
+        len_crs = 0
+        for crs in self.grades.keys():
+            if crs == course:
+                sum_crs += sum(self.grades[course])
+                len_crs += len(self.grades[course])
+        res = round(sum_crs / len_crs, 2)
+        return res
 class Mentor:
     def __init__(self, name, surname):
         self.name = name
@@ -57,24 +61,20 @@ class Lecturer(Mentor):
         return av_rating
     def __str__(self):
         return f'Имя: {self.name}\nФамилия: {self.surname}\nСредняя оценка преподавателя: {self.average_rating()}'
-#Функция для выставления посещаемости студентом лекций.
-    def attendance(self, student, course, availability):
-        if isinstance(student, Student) and course in student.courses_in_progress:
-            if course in student.attendance:
-                student.attendance[course] += [availability]
-            else:
-                student.attendance[course] = [availability]
-        else:
-            return ('Ошибка')
-    def __it__(self,other):
-        if isinstance(other,Lecturer):
-           if (self.average_rating() < other.average_rating()) == True:
-                return ('У '+other.name + ' средняя оценка лекции выше, чем у ' + self.name)
-           else:
-                return('У ' + self.name + ' средняя оценка лекции выше, чем у ' + other.name )
-        else:
-            return(self.name, ' учится лучше, чем ', other.name)
-    
+    def __lt__(self, other):
+        if not isinstance(other, Lecturer):
+            print("Студентов и преподавателей не сравнивают.")
+            return
+        return self.average_rating() < other.average_rating()  
+    def avg_rate_course(self, course):
+        sum_crs = 0
+        len_crs = 0
+        for crs in self.grades.keys():
+            if crs == course:
+                sum_crs += sum(self.grades[course])
+                len_crs += len(self.grades[course])
+        res = round(sum_crs / len_crs, 2)
+        return res
 class Reviewer(Mentor):
     def __str__(self):
         return 'Имя: '+self.name + '\nФамилия: '+self.surname
@@ -86,15 +86,6 @@ class Reviewer(Mentor):
                 student.grades[course] = [grade]
         else:
             return 'Ошибка'
-#Функция добавления выговора студенту за невыполнение дз
-    def rebuke(self, student, course, rebukes):
-        if isinstance(student, Student) and course in student.courses_in_progress:
-            if course in student.rebuke:
-                student.rebuke[course] += [rebukes]
-            else:
-                student.rebuke[course] = [rebukes]
-        else:
-            return('Ошибка')
 #Студенты
 some_student1 = Student('Елена', 'Анатольевна', 'жен')
 some_student2 = Student('Сергей', 'Сергеевич', 'муж')
@@ -124,27 +115,45 @@ some_reviewer2.rate_hw(some_student2, 'Python',  8)
 #Выставляем оценки за лекции
 some_student1.rate_lec(some_lecturer1, 'Python',  9)
 some_student1.rate_lec(some_lecturer1, 'Python',  8)
-some_student1.rate_lec(some_lecturer2, 'Python',  6)
-some_student1.rate_lec(some_lecturer2, 'Python',  10)
-some_student2.rate_lec(some_lecturer1, 'Python',  7)
+some_student1.rate_lec(some_lecturer2, 'Python',  3)
+some_student1.rate_lec(some_lecturer2, 'Python',  11)
+some_student2.rate_lec(some_lecturer1, 'Python',  8)
 some_student2.rate_lec(some_lecturer1, 'Python',  5)
-some_student2.rate_lec(some_lecturer2, 'Python',  9)
-some_student2.rate_lec(some_lecturer2, 'Python',  10)
-
-#Выставляем посещаемость студентам
-some_lecturer1.attendance(some_student1, 'Python', 'was')
-some_lecturer2.attendance(some_student2, 'Python', 'was')
-some_lecturer1.attendance(some_student1, 'Python', 'was')
-some_lecturer2.attendance(some_student2, 'Python', 'was')
-some_lecturer1.attendance(some_student1, 'Python', 'was')
-some_lecturer2.attendance(some_student2, 'Python', 'was')
-
-#Выставляем выговоры студентам
-some_reviewer2.rebuke(some_student1, 'Python', 'rebuke')
-some_reviewer1.rebuke(some_student2, 'Python', 'rebuke')
+some_student2.rate_lec(some_lecturer2, 'Python',  4)
+some_student2.rate_lec(some_lecturer2, 'Python',  11)
 
 #Сравниваем студентов
-print(some_student2.__it__(some_student1))
+print('some_student2 < some_student1', some_student1 < some_student2)
 
 #Сравниваем лекторов
-print(some_lecturer1.__it__(some_lecturer2))
+print('some_lecturer1 < some_lecturer2' ,some_lecturer1 < some_lecturer2)
+
+lecturer_list = [some_lecturer1, some_lecturer2]
+student_list = [some_student1,some_student2]
+
+def avg_rate_course_stud(course, student_list):
+    summm = 0
+    cnt = 0
+    for stud in student_list:
+        for crs in stud.grades:
+            std_sum_rate = stud.avg_rate_course(course)
+            summm += std_sum_rate
+            cnt += 1
+    res = round(summm / cnt, 2)
+    return res
+
+
+def avg_rate_course_lect(course, lector_list):
+    summmm = 0
+    cnt = 0
+    for lect in lector_list:
+        for crs in lect.grades:
+            lect_summ_rate = lect.avg_rate_course(course)
+            summmm += lect_summ_rate
+            cnt += 1
+    res = round(summmm / cnt, 2)
+    return res
+
+
+print(avg_rate_course_lect('Python', lecturer_list))
+print(avg_rate_course_stud('Python', student_list))
